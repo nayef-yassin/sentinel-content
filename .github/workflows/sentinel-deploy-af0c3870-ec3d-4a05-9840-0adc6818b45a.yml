@@ -1,11 +1,11 @@
-name: Deploy Content to repositories-demo [af0c3870-ec3d-4a05-9840-0adc6818b45a]
+name: Deploy Content to repositories-demo [xxxxxx-ec3d-4a05-9840-0adc6818b45a]
 # Note: This workflow will deploy everything in the root directory.
 # To deploy content only from a specific path (for example SentinelContent):
 #   1. Add the target path to the "paths" property like such
 #    paths:
 #    - 'SentinelContent/**'
 #    - '!.github/workflows/**'
-#    - '.github/workflows/sentinel-deploy-af0c3870-ec3d-4a05-9840-0adc6818b45a.yml'
+#    - '.github/workflows/sentinel-deploy-xxxxxx-ec3d-4a05-9840-0adc6818b45a.yml'
 #   2. Append the path to the directory environment variable below
 #       directory: '${{ github.workspace }}/SentinelContent'
 
@@ -15,17 +15,17 @@ on:
     paths:
     - '**'
     - '!.github/workflows/**'  # this filter prevents other workflow changes from triggering this workflow
-    - '.github/workflows/sentinel-deploy-af0c3870-ec3d-4a05-9840-0adc6818b45a.yml'
+    - '.github/workflows/sentinel-deploy-xxxxxx-ec3d-4a05-9840-0adc6818b45a.yml'
 
 jobs:
   deploy-content:
     runs-on: windows-latest
     env:
-      resourceGroupName: 'nyassin-cicd'
+      resourceGroupName: 'contoso-cicd'
       workspaceName: 'repositories-demo'
       directory: '${{ github.workspace }}'
       cloudEnv: 'AzureCloud'
-      creds: ${{ secrets.AZURE_SENTINEL_CREDENTIALS_af0c3870ec3d4a0598400adc6818b45a }}
+      creds: ${{ secrets.AZURE_SENTINEL_CREDENTIALS_0000000000000000000 }}
       contentTypes: 'AnalyticsRule'
 
     steps:
