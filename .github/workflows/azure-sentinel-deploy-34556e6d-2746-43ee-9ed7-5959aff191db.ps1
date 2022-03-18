@@ -18,7 +18,7 @@ $githubAuthToken = $Env:githubAuthToken
 $githubRepository = $Env:GITHUB_REPOSITORY
 $branchName = $Env:branch
 $manualDeployment = $Env:manualDeployment
-$csvPath = ".github\workflows\.sentinel\tracking_table_$sourceControlId.csv"
+$csvPath = "tracking_table_$sourceControlId.csv"
 $global:localCsvTablefinal = @{}
 
 $guidPattern = '(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)'
