@@ -17,8 +17,8 @@ $sourceControlId = $Env:sourceControlId
 $githubAuthToken = $Env:githubAuthToken
 $githubRepository = $Env:GITHUB_REPOSITORY
 $branchName = $Env:branch
-$manualDeployment = $Env:manualDeployment
-$csvPath = "tracking_table_$sourceControlId.csv"
+$smartDeployment = $Env:smartDeployment
+$csvPath = ".sentinel\tracking_table_$sourceControlId.csv"
 $global:localCsvTablefinal = @{}
 
 $guidPattern = '(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)'
@@ -53,10 +53,13 @@ $metadataFilePath = "metadata.json"
         },
         "workspace": {
             "type": "string"
+        },
+        "contentId": {
+            "type": "string"
         }
     },
     "variables": {
-        "metadataName": "[guid(parameters('parentResourceId'))]"
+        "metadataName": "[concat(toLower(parameters('kind')), '-', parameters('contentId'))]"
     },
     "resources": [
         {
@@ -247,10 +250,12 @@ function AttemptDeployMetadata($deploymentName, $resourceGroupName, $templateObj
         $sentinelContentKinds = GetContentKinds $resource
         if ($sentinelContentKinds.Count -gt 0) {
             $contentKind = ToContentKind $sentinelContentKinds $resource $templateObject
+            $contentId = $resource.Split("/")[-1]
             try {
                 New-AzResourceGroupDeployment -Name "md-$deploymentName" -ResourceGroupName $ResourceGroupName -TemplateFile $metadataFilePath `
                     -parentResourceId $resource `
                     -kind $contentKind `
+                    -contentId $contentId `
                     -sourceControlId $sourceControlId `
                     -workspace $workspaceName `
                     -ErrorAction Stop | Out-Host
@@ -388,7 +393,7 @@ function Deployment($fullDeploymentFlag, $remoteShaTable, $tree) {
     {
         $totalFiles = 0;
         $totalFailed = 0;
-        Get-ChildItem -Path $Directory -Recurse -Filter *.json |
+        Get-ChildItem -Path $Directory -Recurse -Filter *.json -exclude *metadata.json |
         ForEach-Object {
             $path = $_.FullName.Replace($Directory + "\", "")
             $templateObject = Get-Content $path | Out-String | ConvertFrom-Json
@@ -476,7 +481,7 @@ function main() {
         $global:localCsvTablefinal = ReadCsvToTable
     }
 
-    $fullDeploymentFlag = (-not (Test-Path $csvPath)) -or ($manualDeployment -eq "true")
+    $fullDeploymentFlag = (-not (Test-Path $csvPath)) -or ($smartDeployment -eq "false")
     $tree = GetGithubTree
     $remoteShaTable = GetCommitShaTable $tree
     Deployment $fullDeploymentFlag $remoteShaTable $tree
