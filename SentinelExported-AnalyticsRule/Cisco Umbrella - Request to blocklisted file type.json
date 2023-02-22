@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/5b632e11-62ea-4150-969c-f61eed5edbc8')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/5b632e11-62ea-4150-969c-f61eed5edbc8')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "PT10M",
+        "queryPeriod": "PT10M",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "Medium",
+        "query": "let file_ext_blocklist = dynamic(['.ps1', '.vbs', '.bat', '.scr']);\nlet lbtime = 10m;\nCisco_Umbrella\n| where TimeGenerated > ago(lbtime)\n| where EventType == 'proxylogs'\n| where DvcAction =~ 'Allowed'\n| extend file_ext = extract(@'.*(\\.\\w+)$', 1, UrlOriginal)\n| extend Filename = extract(@'.*\\/*\\/(.*\\.\\w+)$', 1, UrlOriginal)\n| where file_ext in (file_ext_blocklist)\n| project TimeGenerated, SrcIpAddr, Identities, Filename\n| extend IPCustomEntity = SrcIpAddr\n| extend AccountCustomEntity = Identities\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "AccountCustomEntity"
+              }
+            ]
+          },
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "InitialAccess"
+        ],
+        "techniques": null,
+        "displayName": "Cisco Umbrella - Request to blocklisted file type",
+        "enabled": false,
+        "description": "Detects request to potentially harmful file types (.ps1, .bat, .vbs, etc.).",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}
