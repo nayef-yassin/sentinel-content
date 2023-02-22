@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/9f8318f4-acca-44dd-a919-7325ffdd45ba')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/9f8318f4-acca-44dd-a919-7325ffdd45ba')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "P1D",
+        "queryPeriod": "P1D",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "Low",
+        "query": "\nCommonSecurityLog\n| where DeviceProduct =~ \"Wazuh\"\n| where Activity has \"Web server 400 error code.\"\n| where Message has \"403\"\n| extend HostName=substring(split(DeviceCustomString1,\")\")[0],1)\n| summarize StartTime = min(TimeGenerated), EndTime = max(TimeGenerated), NumberOfErrors = dcount(SourceIP) by HostName, SourceIP\n| where NumberOfErrors > 400\n| sort by NumberOfErrors desc\n| extend timestamp = StartTime, HostCustomEntity = HostName, IPCustomEntity = SourceIP\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Host",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "HostCustomEntity"
+              }
+            ]
+          },
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "Persistence"
+        ],
+        "techniques": null,
+        "displayName": "Wazuh - Large Number of Web errors from an IP",
+        "enabled": false,
+        "description": "Identifies instances where Wazuh logged over 400 '403' Web Errors from one IP Address. To onboard Wazuh data into Sentinel please view: https://github.com/wazuh/wazuh-documentation/blob/master/source/azure/monitoring%20activity.rst",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/260e2d30-0e59-4d6b-9198-6de7ebe86942')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/260e2d30-0e59-4d6b-9198-6de7ebe86942')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "P1D",
+        "queryPeriod": "P14D",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "Medium",
+        "query": "let ioc_lookBack = 30d;\nlet timeframe = 1h;\nlet TI_IP_List =\nThreatIntelligenceIndicator\n| where TimeGenerated > ago(ioc_lookBack)\n| where isnotempty(NetworkIP)\n| summarize make_list(NetworkIP);\nProofpointPOD \n| where TimeGenerated > ago(timeframe)\n| where isnotempty(SrcIpAddr)\n| where SrcIpAddr in~ (TI_IP_List)\n| extend Message = \"Email sender IP in TI list\"\n| project Message, SrcUserUpn, DstUserUpn, SrcIpAddr\n| extend AccountCustomEntity = SrcUserUpn, IpCustomEntity = SrcIpAddr\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "AccountCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "Exfiltration",
+          "InitialAccess"
+        ],
+        "techniques": null,
+        "displayName": "ProofpointPOD - Email sender IP in TI list",
+        "enabled": false,
+        "description": "Email sender IP in TI list.",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}

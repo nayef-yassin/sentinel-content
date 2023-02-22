@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/d24bf78d-87ba-448a-9d3e-26eea3e0eb5f')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/d24bf78d-87ba-448a-9d3e-26eea3e0eb5f')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "PT1H",
+        "queryPeriod": "PT1H",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "Medium",
+        "query": "\nlet threshold = 5000;\nSophosXGFirewall\n| where Log_Type =~ \"Firewall\" and Status =~ \"Deny\"\n| summarize count() by Src_IP, bin(TimeGenerated,5m)\n| where count_ > threshold\n| extend timestamp = TimeGenerated, IPCustomEntity = Src_IP\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "Impact"
+        ],
+        "techniques": null,
+        "displayName": "Excessive Amount of Denied Connections from a Single Source",
+        "enabled": false,
+        "description": "This creates an incident in the event that a single source IP address generates a excessive amount of denied connections.",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}

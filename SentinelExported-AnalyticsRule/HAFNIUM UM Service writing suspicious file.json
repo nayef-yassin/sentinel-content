@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/fecbfa34-9268-4f9c-a0ab-d8739869e043')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/fecbfa34-9268-4f9c-a0ab-d8739869e043')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "P1D",
+        "queryPeriod": "P1D",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "High",
+        "query": "let scriptExtensions = dynamic([\".php\", \".jsp\", \".js\", \".aspx\", \".asmx\", \".asax\", \".cfm\", \".shtml\"]);\nunion isfuzzy=true\n(SecurityEvent\n| where EventID == 4663\n| where Process has_any (\"umworkerprocess.exe\", \"UMService.exe\")\n| where ObjectName has_any (scriptExtensions)\n| where AccessMask in ('0x2','0x100', '0x10', '0x4')\n| extend timestamp = TimeGenerated, AccountCustomEntity = Account, HostCustomEntity = Computer, IPCustomEntity = IpAddress\n),\n(imFileEvent\n| where EventType == \"FileCreated\"\n| where ActingProcessName has_any (\"umworkerprocess.exe\", \"UMService.exe\")\n  and\n  TargetFileName has_any (scriptExtensions)\n| extend timestamp = TimeGenerated, AccountCustomEntity = ActorUsername, HostCustomEntity = DvcHostname\n),\n(DeviceFileEvents\n| where ActionType =~ \"FileCreated\"\n| where InitiatingProcessFileName has_any (\"umworkerprocess.exe\", \"UMService.exe\")\n| where FileName has_any(scriptExtensions)\n| extend timestamp = TimeGenerated, AccountCustomEntity = InitiatingProcessAccountUpn, HostCustomEntity = DeviceName, IPCustomEntity = RequestSourceIP)\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "InitialAccess"
+        ],
+        "techniques": null,
+        "displayName": "HAFNIUM UM Service writing suspicious file",
+        "enabled": false,
+        "description": "This query looks for the Exchange server UM process writing suspicious files that may be indicative of webshells.\nReference: https://www.microsoft.com/security/blog/2021/03/02/hafnium-targeting-exchange-servers/",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}
