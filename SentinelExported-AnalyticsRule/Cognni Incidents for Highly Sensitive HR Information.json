@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/02dd8d0b-c9c6-44cc-9fe9-536f573c14bb')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/02dd8d0b-c9c6-44cc-9fe9-536f573c14bb')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "PT5H",
+        "queryPeriod": "PT5H",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "High",
+        "query": "let highRisk = 3;\nlet hr = 'HR Information';\nCognniIncidents_CL \n| where Severity == highRisk\n| where informationType_s == hr\n| where TimeGenerated >= ago(5h)\n| extend AccountCustomEntity = userId_s\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "AccountCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "Collection"
+        ],
+        "techniques": null,
+        "displayName": "Cognni Incidents for Highly Sensitive HR Information",
+        "enabled": false,
+        "description": "Display incidents in which highly sensitive HR information was placed at risk by user sharing.",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}
