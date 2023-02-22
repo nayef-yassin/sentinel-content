@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/85ab90c7-e728-46fc-8ed0-e94206342782')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/85ab90c7-e728-46fc-8ed0-e94206342782')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "P1D",
+        "queryPeriod": "P1D",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "Medium",
+        "query": "// Add non-approved user principal names to the list below to search for their account creation/deletion activity\n// ex: dynamic([\"UPN1\", \"upn123\"])\nlet nonapproved_users = dynamic([]);\nAuditLogs\n| where OperationName == \"Add user\" or OperationName == \"Delete user\"\n| where Result == \"success\"\n| extend InitiatingUser = tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)\n| where InitiatingUser has_any (nonapproved_users)\n| project-reorder TimeGenerated, ResourceId, OperationName, InitiatingUser, TargetResources\n| extend AccountCustomEntity = InitiatingUser, IPCustomEntity = tostring(parse_json(tostring(InitiatedBy.user)).ipAddress)\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "AccountCustomEntity"
+              }
+            ]
+          },
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "InitialAccess"
+        ],
+        "techniques": null,
+        "displayName": "Account created or deleted by non-approved user",
+        "enabled": false,
+        "description": "Identifies accounts that were created or deleted by a defined list of non-approved user principal names. Add to this list before running the query for accurate results.\nRef : https://docs.microsoft.com/azure/active-directory/fundamentals/security-operations-user-accounts",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}
