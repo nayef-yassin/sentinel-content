@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/4cccb8cb-3a4e-4dcb-8379-9e5126bbfafa')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/4cccb8cb-3a4e-4dcb-8379-9e5126bbfafa')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "P1D",
+        "queryPeriod": "P1D",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "Low",
+        "query": "\nlet short_uaLength = 5;\nlet long_uaLength = 1000;\nlet c_threshold = 100;\nW3CIISLog \n// Exclude local IPs as these create noise\n| where cIP !startswith \"192.168.\" and cIP != \"::1\"\n| where isnotempty(csUserAgent) and csUserAgent !in~ (\"-\", \"MSRPC\") and (string_size(csUserAgent) <= short_uaLength or string_size(csUserAgent) >= long_uaLength)\n| extend csUserAgent_size = string_size(csUserAgent)\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), ConnectionCount = count() by Computer, sSiteName, sPort, csUserAgent, csUserAgent_size, csUserName , csMethod, csUriStem, sIP, cIP, scStatus, scSubStatus, scWin32Status\n| where ConnectionCount < c_threshold\n| extend timestamp = StartTimeUtc, AccountCustomEntity = csUserName, HostCustomEntity = Computer, IPCustomEntity = cIP\n",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": false,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "entityMappings": [
+          {
+            "entityType": "Account",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "AccountCustomEntity"
+              }
+            ]
+          },
+          {
+            "entityType": "Host",
+            "fieldMappings": [
+              {
+                "identifier": "FullName",
+                "columnName": "HostCustomEntity"
+              }
+            ]
+          },
+          {
+            "entityType": "IP",
+            "fieldMappings": [
+              {
+                "identifier": "Address",
+                "columnName": "IPCustomEntity"
+              }
+            ]
+          }
+        ],
+        "tactics": [
+          "InitialAccess"
+        ],
+        "techniques": null,
+        "displayName": "Anomalous User Agent connection attempt",
+        "enabled": false,
+        "description": "Identifies connection attempts (success or fail) from clients with very short or very long User Agent strings and with less than 100 connection attempts.",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}
