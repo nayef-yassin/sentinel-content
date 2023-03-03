@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "String"
+    }
+  },
+  "resources": [
+    {
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/017c0d3e-785f-4165-ac61-f0d47c99110a')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/017c0d3e-785f-4165-ac61-f0d47c99110a')]",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
+      "kind": "Scheduled",
+      "apiVersion": "2022-09-01-preview",
+      "properties": {
+        "queryFrequency": "PT1H",
+        "queryPeriod": "P2DT1H30M",
+        "triggerOperator": "GreaterThan",
+        "triggerThreshold": 0,
+        "severity": "Low",
+        "query": "SecurityAlert | take 10",
+        "suppressionDuration": "PT1H",
+        "suppressionEnabled": true,
+        "incidentConfiguration": {
+          "createIncident": true,
+          "groupingConfiguration": {
+            "enabled": false,
+            "reopenClosedIncident": false,
+            "lookbackDuration": "PT5M",
+            "matchingMethod": "AllEntities",
+            "groupByEntities": [],
+            "groupByAlertDetails": null,
+            "groupByCustomDetails": null
+          }
+        },
+        "tactics": [
+          "InitialAccess",
+          "Persistence"
+        ],
+        "techniques": null,
+        "displayName": "Failed Login",
+        "enabled": false,
+        "description": "MPO rule description",
+        "alertRuleTemplateName": null
+      }
+    }
+  ]
+}
