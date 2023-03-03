@@ -8,8 +8,8 @@
   },
   "resources": [
     {
-      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/4c1ea13e-064f-448c-b917-a35b019c1b9e')]",
-      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/4c1ea13e-064f-448c-b917-a35b019c1b9e')]",
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/8ee9c64a-fc2c-4410-be34-cba0e47aabf0')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/8ee9c64a-fc2c-4410-be34-cba0e47aabf0')]",
       "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
       "kind": "Scheduled",
       "apiVersion": "2022-09-01-preview",
@@ -19,7 +19,7 @@
         "triggerOperator": "GreaterThan",
         "triggerThreshold": 0,
         "severity": "Medium",
-        "query": "SecurityAlert | take 11",
+        "query": "SecurityAlert | take 10",
         "suppressionDuration": "PT1H",
         "suppressionEnabled": true,
         "incidentConfiguration": {
@@ -39,7 +39,7 @@
           "Persistence"
         ],
         "techniques": null,
-        "displayName": "Critical Threat Detected",
+        "displayName": "Denied Connections",
         "enabled": false,
         "description": "MPO rule description",
         "alertRuleTemplateName": null

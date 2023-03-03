@@ -8,8 +8,8 @@
   },
   "resources": [
     {
-      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/4c1ea13e-064f-448c-b917-a35b019c1b9e')]",
-      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/4c1ea13e-064f-448c-b917-a35b019c1b9e')]",
+      "id": "[concat(resourceId('Microsoft.OperationalInsights/workspaces/providers', parameters('workspace'), 'Microsoft.SecurityInsights'),'/alertRules/017c0d3e-785f-4165-ac61-f0d47c99110a')]",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/017c0d3e-785f-4165-ac61-f0d47c99110a')]",
       "type": "Microsoft.OperationalInsights/workspaces/providers/alertRules",
       "kind": "Scheduled",
       "apiVersion": "2022-09-01-preview",
@@ -18,8 +18,8 @@
         "queryPeriod": "P2DT1H30M",
         "triggerOperator": "GreaterThan",
         "triggerThreshold": 0,
-        "severity": "Medium",
-        "query": "SecurityAlert | take 11",
+        "severity": "Low",
+        "query": "SecurityAlert | take 10",
         "suppressionDuration": "PT1H",
         "suppressionEnabled": true,
         "incidentConfiguration": {
@@ -39,7 +39,7 @@
           "Persistence"
         ],
         "techniques": null,
-        "displayName": "Critical Threat Detected",
+        "displayName": "Failed Login",
         "enabled": false,
         "description": "MPO rule description",
         "alertRuleTemplateName": null
